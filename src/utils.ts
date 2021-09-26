@@ -1,5 +1,5 @@
 import { useState, useEffect, Dispatch, useRef } from 'react';
-import { Board, gridSize } from './types';
+import { Board, CellList, gridSize } from './types';
 
 export interface CircularBuffer<T> {
   push: (val:T) => void,
@@ -15,6 +15,24 @@ export const newBoard = ():Board =>
   new Array(gridSize).fill(null).map(() => new Array(gridSize).fill(false))
 
 export const copyBoard = (b:Board):Board => b.map(row => copyArray(row))
+
+export function encodePattern(cells:Board) {
+  const encoded:CellList = []
+  cells.forEach((row, i) =>
+    row.forEach((cell, j) => {
+      if (cell)
+        encoded.push([i, j])
+    })
+  )
+  return encoded
+}
+
+export function decodePattern(cells:CellList) {
+  const arr = newBoard()
+  for (const [y, x] of cells)
+    arr[y][x] = true
+  return arr
+}
 
 export const useStorage = <T>(name:string, initial:T | (() => T), type?: "session" | "local"): [T, Dispatch<React.SetStateAction<T>>] => {
   const [state, setState] = useState(initial)

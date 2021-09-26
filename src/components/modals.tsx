@@ -1,10 +1,11 @@
-import {Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, makeStyles, Menu, MenuItem, TextField, Tooltip } from '@material-ui/core'
+import {Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, Menu, MenuItem, TextField, Tooltip } from '@material-ui/core'
 import DoneIcon from '@material-ui/icons/Done'
 import DeleteSweepIcon from '@material-ui/icons/DeleteSweep';
+import PublishIcon from '@material-ui/icons/Publish';
 import ReorderIcon from '@material-ui/icons/Reorder';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { Dispatch, FC, FormEvent, useEffect, useMemo, useState } from "react"
-import { newBoard } from '../utils';
+import { encodePattern, decodePattern } from '../utils';
 import { styled } from '@material-ui/styles';
 import { Board, CellList, Pattern } from '../types';
 
@@ -53,24 +54,6 @@ const StyledTextField = styled(TextField)({
 
 const maxNameLen = 64
 
-function encodePattern(cells:Board) {
-  const encoded:CellList = []
-  cells.forEach((row, i) =>
-    row.forEach((cell, j) => {
-      if (cell)
-        encoded.push([i, j])
-    })
-  )
-  return encoded
-}
-
-function decodePattern(cells:CellList) {
-  const arr = newBoard()
-  for (const [y, x] of cells)
-    arr[y][x] = true
-  return arr
-}
-
 const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) => {
   const [name, setName] = useState('')
   const [errorText, setErrorText] = useState('')
@@ -100,6 +83,9 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
     onClose()
   }
 
+  const exportClipboard = () =>
+    navigator.clipboard.writeText(JSON.stringify(encodePattern(cellState)))
+
   return(
     <Dialog
       open={open}
@@ -120,9 +106,16 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
             autoFocus={true}
           />
         </DialogContent>
-        <DialogActions>
+        <DialogActions style={{ display: 'flex' }}> 
+
+         <Tooltip title="Export to clipboard" arrow>
+            <IconButton onClick={exportClipboard} style={{ marginRight: 'auto' }}>
+              <PublishIcon></PublishIcon>
+            </IconButton>
+          </Tooltip>
+
           <Tooltip title="Confirm" arrow>
-            <IconButton type="submit">
+            <IconButton type="submit" >
               <DoneIcon></DoneIcon>
             </IconButton>
           </Tooltip>

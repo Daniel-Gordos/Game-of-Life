@@ -33,48 +33,54 @@ interface TopBarProps {
 const TopBar:FC<TopBarProps> = ({ handlers, state, actions }) => {
   const classes = useStyles()
   return (
-  <Grid container justifyContent="center" className={classes.actionBar}>
-    <Tooltip title="Undo" arrow placement="top">
-      <IconButton
-        onClick={handlers.handleUndo}
-        disabled={state.playing || !actions.canGoBack}
-      >
-        <UndoIcon></UndoIcon>
-      </IconButton>
-    </Tooltip>
-    <Tooltip title="Redo" arrow placement="top">
-      <IconButton
-        onClick={handlers.handleRedo}
-        disabled={state.playing || !actions.canGoForward}
+    <Grid container justifyContent="center" className={classes.actionBar}>
+    
+      <Tooltip title="Undo" arrow placement="top">
+        <IconButton
+          onClick={handlers.handleUndo}
+          disabled={state.playing || !actions.canGoBack}
         >
-        <RedoIcon></RedoIcon>
-      </IconButton>
-    </Tooltip>
-    <Tooltip title="Clear" arrow placement="top">
-      <IconButton
-        onClick={handlers.handleClear}
-        disabled={state.playing || !state.anyActive}
+          <UndoIcon></UndoIcon>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Redo" arrow placement="top">
+        <IconButton
+          onClick={handlers.handleRedo}
+          disabled={state.playing || !actions.canGoForward}
+          >
+          <RedoIcon></RedoIcon>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Clear" arrow placement="top">
+        <IconButton
+          onClick={handlers.handleClear}
+          disabled={state.playing || !state.anyActive}
+          >
+          <ClearIcon></ClearIcon>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Save" arrow placement="top">
+        <IconButton
+          onClick={handlers.handleSaving}
+          disabled={state.playing}
         >
-        <ClearIcon></ClearIcon>
-      </IconButton>
-    </Tooltip>
-    <Tooltip title="Save" arrow placement="top">
+          <SaveIcon/>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Load" arrow placement="top">
       <IconButton
-        onClick={handlers.handleSaving}
+        onClick={handlers.handleLoading}
         disabled={state.playing}
       >
-        <SaveIcon/>
+        <RestorePageIcon/>
       </IconButton>
-    </Tooltip>
-    <Tooltip title="Load" arrow placement="top">
-    <IconButton
-      onClick={handlers.handleLoading}
-      disabled={state.playing}
-    >
-      <RestorePageIcon/>
-    </IconButton>
-    </Tooltip>
-  </Grid>
+      </Tooltip>
+
+    </Grid>
   )
 }
 export default TopBar
