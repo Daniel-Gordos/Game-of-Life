@@ -17,8 +17,6 @@ const useStyles = makeStyles(theme => ({
 
 interface TopBarProps {
   handlers: {
-    handleUndo: () => void
-    handleRedo: () => void
     handleSaving: () => void
     handleLoading: () => void
     handleClear: () => void
@@ -37,7 +35,7 @@ const TopBar:FC<TopBarProps> = ({ handlers, state, actions }) => {
     
       <Tooltip title="Undo" arrow placement="top">
         <IconButton
-          onClick={handlers.handleUndo}
+          onClick={actions.back}
           disabled={state.playing || !actions.canGoBack}
         >
           <UndoIcon></UndoIcon>
@@ -46,7 +44,7 @@ const TopBar:FC<TopBarProps> = ({ handlers, state, actions }) => {
 
       <Tooltip title="Redo" arrow placement="top">
         <IconButton
-          onClick={handlers.handleRedo}
+          onClick={actions.forward}
           disabled={state.playing || !actions.canGoForward}
           >
           <RedoIcon></RedoIcon>

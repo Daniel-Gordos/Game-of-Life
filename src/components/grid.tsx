@@ -1,12 +1,13 @@
 import { Card, makeStyles } from "@material-ui/core"
 import { FC } from "react"
+import { gridSize } from "../types"
 import Cell from "./cell"
 
 
 const useStyles = makeStyles(theme => ({
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(10, 1fr)",
+    gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
     gap: theme.spacing(0.5),
     padding: theme.spacing(1),
     width: "fit-content",

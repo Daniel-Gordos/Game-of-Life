@@ -9,3 +9,14 @@ export interface Pattern {
   created: number
   cells: CellList
 }
+
+export interface Ordering<T> {
+  text: string
+  sorter: (a:T, b:T) => number
+}
+
+export enum ModalState {
+  none,
+  save,
+  load
+}

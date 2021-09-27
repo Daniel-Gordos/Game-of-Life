@@ -1,4 +1,4 @@
-import {Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, Menu, MenuItem, TextField, Tooltip } from '@material-ui/core'
+import {Dialog, DialogActions, DialogContent, DialogTitle, IconButton, List, ListItem, ListItemSecondaryAction, ListItemText, makeStyles, Menu, MenuItem, Tab, Tabs, TextField, Tooltip, Typography } from '@material-ui/core'
 import DoneIcon from '@material-ui/icons/Done'
 import DeleteSweepIcon from '@material-ui/icons/DeleteSweep';
 import PublishIcon from '@material-ui/icons/Publish';
@@ -7,7 +7,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { Dispatch, FC, FormEvent, useEffect, useMemo, useState } from "react"
 import { encodePattern, decodePattern } from '../utils';
 import { styled } from '@material-ui/styles';
-import { Board, CellList, Pattern } from '../types';
+import { Board, CellList, gridSize, Ordering, Pattern } from '../types';
 
 interface SavingProps {
   open: boolean
@@ -30,7 +30,10 @@ interface ListItemProps {
   handleDelete: () => void
 }
 
-type Ordering = "alp" | "asc" | "desc"
+interface TabProps {
+  index: number
+  currTab: number
+}
 
 const StyledTextField = styled(TextField)({
   '& label.Mui-focused': {
@@ -51,6 +54,18 @@ const StyledTextField = styled(TextField)({
     },
   },
 });
+
+const useStyles = makeStyles(theme => ({
+  dialogTitle: {
+    padding: 0,
+  },
+  tabMenuItem: {
+    height: theme.spacing(7.5)
+  },
+  tabBar: {
+    backgroundColor: theme.palette.success.light
+  }
+}))
 
 const maxNameLen = 64
 
@@ -79,7 +94,8 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
       created: new Date().getTime(),
       cells: encodePattern(cellState)
     }
-    setPatterns(prev => [ newPattern, ...prev.filter(p => p.name !== newPattern.name)])
+    setPatterns(prev =>
+      [ newPattern, ...prev.filter(p => p.name != newPattern.name) ])
     onClose()
   }
 
@@ -125,6 +141,11 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
   )
 }
 
+const timeFormat = new Intl.DateTimeFormat(
+  'en-AU',
+  {dateStyle: "short", timeStyle: "short"}
+)
+
 const SavedListItem:FC<ListItemProps> = ({ pattern, handleLoad, handleDelete}) => (
   <ListItem key={pattern.name} button onClick={handleLoad}>
     <ListItemText
@@ -141,29 +162,61 @@ const SavedListItem:FC<ListItemProps> = ({ pattern, handleLoad, handleDelete}) =
   </ListItem>
 )
 
-const timeFormat = new Intl.DateTimeFormat(
-  'en-AU',
-  {dateStyle: "short", timeStyle: "short"}
-)
+const TabPanel:FC<TabProps> = ({ index, currTab, children }) => {
+  return (
+    <div role="tabpanel" hidden={index !== currTab}>
+      {children}
+    </div>
+  )
+}
+
+const validateImport = (s:string) => {
+
+  let valid = true
+    if (!/^\[((\[\d+,\d+\],)*(\[\d+,\d+\]))?\]$/.test(s))
+      valid = false
+    if (Array.from(s.matchAll(/\d+/g))
+      .some(m => {
+        const val = parseInt(m[0])
+        return val < 0 || val >= gridSize
+      })
+    )
+      valid = false
+  
+  return valid
+}
+
+const sortOptions:Ordering<Pattern>[] = [
+  {
+    text: 'Alphabetical',
+    sorter: (a, b) => a.name.localeCompare(b.name)
+  },
+  {
+    text: 'Newest',
+    sorter: (a, b) => b.created - a.created
+  },
+  {
+    text: 'Oldest',
+    sorter: (a, b) => a.created - b.created
+  },
+  {
+    text: 'Most cells',
+    sorter: (a, b) => b.cells.length - a.cells.length
+  }
+]
 
 const LoadingModal:FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPatterns }) => {
+  const classes = useStyles()
 
-  const [sortBy, setSortBy] = useState<Ordering>("desc")
+  const [tab, setTab] = useState(0)
+  const [sortBy, setSortBy] = useState(sortOptions[0])
   const [sortAnchor, setSortAnchor] = useState<Element | null>(null)
 
-  const sorter = useMemo(() => {
-    switch (sortBy) {
-      case "alp":
-        return (a:Pattern, b:Pattern) => a.name.localeCompare(b.name)
-      case "asc":
-        return (a:Pattern, b:Pattern) => a.created - b.created
-      case "desc":
-        return (a:Pattern, b:Pattern) => b.created - a.created
-    }
-  }, [sortBy])
+  const [errorText, setErrorText] = useState("")
+  const [importText, setImportText] = useState("")
 
   const sorted = useMemo(() =>
-    [...patterns].sort(sorter),
+    [...patterns].sort(sortBy.sorter),
     [open, patterns, sortBy]
   )
 
@@ -180,9 +233,21 @@ const LoadingModal:FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPat
 
   const closeSortMenu = () => setSortAnchor(null)
 
-  const sort = (order:Ordering) => {
+  const sort = (order:Ordering<Pattern>) => {
     closeSortMenu()
     setSortBy(order)
+  }
+
+  const importFromText = (e:FormEvent) => {
+    e.preventDefault()
+
+    if (!validateImport(importText)) {
+      setErrorText('Invalid import string!')
+      return
+    } 
+
+    setErrorText('')
+    onLoad(decodePattern(JSON.parse(importText)))
   }
 
   return(
@@ -191,55 +256,101 @@ const LoadingModal:FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPat
       onClose={onClose}
       fullWidth
     >
-      <DialogTitle>
-        <Grid container direction="row" justifyContent="space-between" alignItems="center">
-          Load a pattern
-          <Tooltip title="Sort" arrow>
-            <IconButton
-              size="small"
-              onClick={e => setSortAnchor(e.currentTarget)}
-            >
-              <ReorderIcon></ReorderIcon>
-            </IconButton>
-          </Tooltip>
-        </Grid>
-        <Menu
+      <DialogTitle className={classes.dialogTitle}>
+        <Tabs
+          variant="fullWidth"
+          value={tab}
+          onChange={(e, newVal) => setTab(newVal)}
+          TabIndicatorProps={{ className: classes.tabBar }}
+        >
+          <Tab label="Load" className={classes.tabMenuItem} />
+          <Tab label="Import" className={classes.tabMenuItem} />
+        </Tabs>
+      </DialogTitle>
+
+        <TabPanel index={0} currTab={tab}>
+          <DialogContent dividers>
+            <List>
+            {sorted.map(p =>
+              <SavedListItem
+                key={p.name}
+                pattern={p}
+                handleLoad={() => load(p.cells)}
+                handleDelete={() => delPattern(p.name)}
+              />
+            )}
+            {(sorted.length == 0) &&
+              <Typography variant="body1">
+                No saved patterns were found
+              </Typography>
+            }
+            </List>
+          </DialogContent>
+
+          <DialogActions style={{display: "flex"}}>
+            <Tooltip title="Delete all" arrow>
+              <IconButton
+                style={{marginRight: "auto"}}
+                onClick={deleteAll}
+                disabled={patterns.length === 0}
+              >
+                <DeleteSweepIcon></DeleteSweepIcon>
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Sort" arrow>
+              <IconButton
+                onClick={e => setSortAnchor(e.currentTarget)}
+              >
+                <ReorderIcon></ReorderIcon>
+              </IconButton>
+            </Tooltip>
+
+          </DialogActions>
+
+          <Menu
             open={!!sortAnchor}
             onClose={closeSortMenu}
             anchorEl={sortAnchor}
           >
-            <MenuItem onClick={() => sort('alp')}>Alphabetical</MenuItem>
-            <MenuItem onClick={() => sort('desc')}>Newest</MenuItem>
-            <MenuItem onClick={() => sort('asc')}>Oldest</MenuItem>
+          {sortOptions.map((sortOption) =>
+            <MenuItem
+              onClick={() => sort(sortOption)}
+              key={sortOption.text}
+            >
+              {sortOption.text}
+            </MenuItem>
+          )}
           </Menu>
-      </DialogTitle>
-      <DialogContent dividers>
-        <List>
-        {sorted.map(p =>
-          <SavedListItem
-            key={p.name}
-            pattern={p}
-            handleLoad={() => load(p.cells)}
-            handleDelete={() => delPattern(p.name)}
-          />
-        )}
-        {(sorted.length == 0) &&
-          "No saved patterns were found"
-        }
-        </List>
-      </DialogContent>
-      <DialogActions style={{display: "flex"}}>
-        <Tooltip title="Delete all" arrow>
-          <IconButton
-            style={{marginRight: "auto"}}
-            onClick={deleteAll}
-            disabled={patterns.length === 0}
-          >
-            <DeleteSweepIcon></DeleteSweepIcon>
-          </IconButton>
-        </Tooltip>
 
-      </DialogActions>
+        </TabPanel>
+          
+        <TabPanel index={1} currTab={tab}>
+          <form onSubmit={importFromText}>
+            <DialogContent dividers>
+              <StyledTextField
+                fullWidth
+                label="Import from text"
+                placeholder="Paste an exported pattern here..."
+                value={importText}
+                onChange={e => setImportText(e.target.value)}
+                error={!!errorText}
+                helperText={errorText}
+              />
+            </DialogContent>
+            
+            <DialogActions>
+
+              <Tooltip title="Confirm" arrow>
+                <IconButton type="submit" >
+                  <DoneIcon></DoneIcon>
+                </IconButton>
+              </Tooltip>
+            
+            </DialogActions>
+          </form>
+        </TabPanel>
+          
     </Dialog>
   )
 }
