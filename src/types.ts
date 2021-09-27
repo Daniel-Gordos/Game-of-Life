@@ -1,13 +1,16 @@
 
-export const gridSize = 10
-
 export type Board = boolean[][]
 export type CellList = number[][]
+
+export interface SavedState {
+  cells: CellList,
+  size: number
+}
 
 export interface Pattern {
   name: string,
   created: number
-  cells: CellList
+  state: SavedState
 }
 
 export interface Ordering<T> {
@@ -18,5 +21,11 @@ export interface Ordering<T> {
 export enum ModalState {
   none,
   save,
-  load
+  load,
+  settings
 }
+
+export type GridSizeContext = [
+  number,
+  (size: number) => void
+]

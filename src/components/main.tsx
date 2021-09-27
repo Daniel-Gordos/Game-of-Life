@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import GolGrid from "./grid";
-import { LoadingModal, SavingModal } from "./modals";
-import { copyBoard, newBoard, useToggle, useStorage, useStateHistory } from '../utils';
+import { createContext, useEffect, useMemo, useState } from "react";
+import GolGrid from "./grid/grid";
+import { copyBoard, newBoard, useToggle, useStorage, useStateHistory } from '../misc/utils';
 import { useInterval } from 'react-use';
-import TopBar from './topBar';
-import BottomBar from './bottomBar';
-import { Board, gridSize, Pattern, ModalState } from '../types';
-
-const historySize = 50
-const tickIntervalMs = 250
+import TopBar from './interface/topBar';
+import BottomBar from './interface/bottomBar';
+import { Board, Pattern, ModalState, GridSizeContext } from '../types';
+import { defaultGridSize, historySize, tickIntervalMs } from "../misc/constants";
+import SavingModal from "./modals/savingModal";
+import LoadingModal from "./modals/loadingModal";
+import SettingsModal from './modals/settingsModal';
 
 function nextCellState(alive:boolean, n:number) {
   if (alive)
@@ -16,30 +16,19 @@ function nextCellState(alive:boolean, n:number) {
   return n === 3
 }
 
-function countNeighbours(cells:Board, i:number, j:number) {
-
-  const above = (i > 0) ? i - 1 : gridSize - 1
-  const below = (i < gridSize - 1) ? i + 1 : 0
-  const left = (j > 0) ? j - 1 : gridSize - 1
-  const right = (j < gridSize - 1) ? j + 1 : 0
-
-  let count = 0;
-  const cols = [left, j, right]
-
-  cols.forEach(x => {if (cells[above][x]) count++})
-  cols.forEach(x => {if (cells[below][x]) count++})
-  if (cells[i][left]) count++
-  if (cells[i][right]) count++
-
-  return count
-}
+export const SizeContext = createContext({} as GridSizeContext)
 
 function Main() {
+
+  const [gridSize, setGridSize] = useState(defaultGridSize)
 
   const [playing, togglePlaying] = useToggle(false)
   const [patterns, setPatterns] = useStorage<Pattern[]>('golSaved', [], "local")
   const [modalState, setModalState] = useState(ModalState.none)
-  const [cells, setCells, cellActions] = useStateHistory(newBoard, historySize)
+  const [cells, setCells, cellActions] = useStateHistory(
+    () => newBoard(gridSize), 
+    historySize
+  )
 
   const anyActive = useMemo(() => cells.some(row => row.some(x => x)), [cells])
 
@@ -52,9 +41,21 @@ function Main() {
     setModalState(s => (s === state) ? ModalState.none : state)
 
   const resetAll = () => {
-    cellActions.reset(newBoard)
+    cellActions.reset(() => newBoard(gridSize))
     togglePlaying(false)
     setModalState(ModalState.none)
+  }
+
+  const changeGridSize = (size:number) => {
+    resetAll()
+    setGridSize(size)
+    cellActions.reset(() => newBoard(size))
+  }
+
+  const loadState = (newState:Board, size:number) => {
+    resetAll()
+    setGridSize(size)
+    cellActions.reset(newState)
   }
 
   useEffect(() => {
@@ -71,7 +72,25 @@ function Main() {
 
   const clear = () => {
     togglePlaying(false)
-    setCells(newBoard())
+    setCells(newBoard(gridSize))
+  }
+
+  const countNeighbours = (cells:Board, i:number, j:number) => {
+
+    const above = (i > 0) ? i - 1 : gridSize - 1
+    const below = (i < gridSize - 1) ? i + 1 : 0
+    const left = (j > 0) ? j - 1 : gridSize - 1
+    const right = (j < gridSize - 1) ? j + 1 : 0
+  
+    let count = 0;
+    const cols = [left, j, right]
+  
+    cols.forEach(x => {if (cells[above][x]) count++})
+    cols.forEach(x => {if (cells[below][x]) count++})
+    if (cells[i][left]) count++
+    if (cells[i][right]) count++
+  
+    return count
   }
 
   const tick = () =>
@@ -80,19 +99,15 @@ function Main() {
         row.map((cell, j) => nextCellState(cell, countNeighbours(cells, i, j))
     )))
 
-  const loadState = (newState:Board) => {
-    resetAll()
-    cellActions.reset(newState)
-  }
-
   useInterval(tick, (playing) ? tickIntervalMs : null)
 
   return (
-    <>
+    <SizeContext.Provider value={[gridSize, changeGridSize]}>
       <TopBar
         handlers={{
           handleSaving: () => toggleModal(ModalState.save),
           handleLoading: () => toggleModal(ModalState.load),
+          handleSettings: () => toggleModal(ModalState.settings),
           handleClear: clear
         }}
         actions={cellActions}
@@ -123,8 +138,13 @@ function Main() {
         patterns={patterns}
         setPatterns={setPatterns}
       />
+      <SettingsModal
+        open={modalState === ModalState.settings}
+        onClose={() => toggleModal(ModalState.settings)}
+        handleGridSize={changeGridSize}
+      />
 
-    </>
+    </SizeContext.Provider>
   )
 }
 export default Main
