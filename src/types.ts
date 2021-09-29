@@ -22,6 +22,7 @@ export enum ModalState {
   none,
   save,
   load,
+  sidebar,
   settings
 }
 

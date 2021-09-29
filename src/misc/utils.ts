@@ -1,4 +1,4 @@
-import { useState, useEffect, Dispatch, useRef } from 'react';
+import { useState, useEffect, Dispatch, useRef, useMemo } from 'react';
 import { Board } from '../types';
 
 export interface CircularBuffer<T> {
@@ -16,15 +16,16 @@ export const newBoard = (gridSize: number):Board =>
 
 export const copyBoard = (b:Board):Board => b.map(row => copyArray(row))
 
-export const useStorage = <T>(name:string, initial:T | (() => T), type?: "session" | "local"): [T, Dispatch<React.SetStateAction<T>>] => {
-  const [state, setState] = useState(initial)
-  const store = (type === "session") ? sessionStorage : localStorage
-  // Load from storage
-  useEffect(() => {
+export const useStorage = <T>(name:string, initial:T | (() => T), store: Storage): [T, Dispatch<React.SetStateAction<T>>] => {
+
+  const [state, setState] = useState<T>(() => {
     const stored = store.getItem(name)
     if (stored)
-      setState(JSON.parse(stored)?.val)
-  }, [])
+      return JSON.parse(stored)?.val
+    // @ts-ignore
+    return (typeof initial === 'function') ? initial() : initial
+  })
+
   // Save on update
   useEffect(() => {
     store.setItem(name, JSON.stringify({ val: state }))

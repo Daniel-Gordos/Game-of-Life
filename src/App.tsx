@@ -5,7 +5,7 @@ import Main from './components/main'
 
 const theme = createTheme({
   palette: {
-    type: "dark"
+    type: "dark",
   }
 })
 

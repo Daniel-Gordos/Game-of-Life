@@ -1,13 +1,17 @@
-import { IconButton, makeStyles } from "@material-ui/core";
+import { IconButton, makeStyles, Theme } from "@material-ui/core";
 import { FC } from "react";
 
-const useStyles = makeStyles(theme => ({
+interface CellStyle {
+  scale: number
+}
+
+const useStyles = makeStyles<Theme, CellStyle>(theme => ({
   cell: {
     borderRadius: "25%",
     opacity: 0.4,
     transition: 'all 0.3s ease-in-out',
-    width: "2rem",
-    height: "2rem",
+    width: props => `${2 * props.scale}rem`,
+    height: props => `${2 * props.scale}rem`,
     backgroundColor: theme.palette.grey[700],
     "&:hover": {}
   },
@@ -22,12 +26,13 @@ const useStyles = makeStyles(theme => ({
 }))
 
 interface CellProps {
-  active?: boolean,
+  active?: boolean
   onClick: () => void
+  scale: number
 }
 
-const Cell:FC<CellProps> = ({ active, onClick }) => {
-  const classes = useStyles()
+const Cell:FC<CellProps> = ({ active, onClick, scale }) => {
+  const classes =  useStyles({ scale })
   return (
     <IconButton
       className={`${classes.cell} ${active && classes.cellActive}`}

@@ -2,13 +2,23 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import GolGrid from "./grid/grid";
 import { copyBoard, newBoard, useToggle, useStorage, useStateHistory } from '../misc/utils';
 import { useInterval } from 'react-use';
-import TopBar from './interface/topBar';
-import BottomBar from './interface/bottomBar';
 import { Board, Pattern, ModalState, GridSizeContext } from '../types';
 import { defaultGridSize, historySize, tickIntervalMs } from "../misc/constants";
 import SavingModal from "./modals/savingModal";
 import LoadingModal from "./modals/loadingModal";
 import SettingsModal from './modals/settingsModal';
+import { Fab, IconButton, makeStyles } from "@material-ui/core";
+import Undo from "@material-ui/icons/Undo";
+import Navbar from "./interface/navbar";
+import Sidebar from "./interface/sidebar";
+import FloatingActions from "./interface/floatingActions";
+
+const useStyles = makeStyles(theme => ({
+  gridContainer: {
+    overflow: 'auto',
+    padding: theme.spacing(1),
+  }
+}))
 
 function nextCellState(alive:boolean, n:number) {
   if (alive)
@@ -19,23 +29,43 @@ function nextCellState(alive:boolean, n:number) {
 export const SizeContext = createContext({} as GridSizeContext)
 
 function Main() {
+  const classes = useStyles()
 
-  const [gridSize, setGridSize] = useState(defaultGridSize)
+  const [gridSize, setGridSize] = useStorage('golSize', defaultGridSize, localStorage)
+  const [gridScale, setGridScale] = useStorage('golScale', 1, localStorage)
 
   const [playing, togglePlaying] = useToggle(false)
-  const [patterns, setPatterns] = useStorage<Pattern[]>('golSaved', [], "local")
+  const [patterns, setPatterns] = useStorage<Pattern[]>('golSaved', [], localStorage)
   const [modalState, setModalState] = useState(ModalState.none)
   const [cells, setCells, cellActions] = useStateHistory(
     () => newBoard(gridSize), 
     historySize
   )
 
+  // Stop if no cells alive
   const anyActive = useMemo(() => cells.some(row => row.some(x => x)), [cells])
-
   useEffect(() => {
     if (!anyActive)
       togglePlaying(false)
   }, [anyActive])
+
+  // Stop if no change from previous step
+  useEffect(() => {
+    if (!playing || cellActions.position === 0)
+      return
+    const prevCells = cellActions.history[cellActions.position -1]
+    for (let i = 0; i < gridSize; i++)
+      for (let j = 0; j < gridSize; j++)
+        if (cells[i][j] !== prevCells[i][j])
+          return
+    togglePlaying(false)
+  }, [cells])
+
+  // Stop if modal opened
+  useEffect(() => {
+    if (modalState !== ModalState.none)
+      togglePlaying(false)
+  }, [modalState])
 
   const toggleModal = (state:ModalState) =>
     setModalState(s => (s === state) ? ModalState.none : state)
@@ -57,11 +87,6 @@ function Main() {
     setGridSize(size)
     cellActions.reset(newState)
   }
-
-  useEffect(() => {
-    if (modalState !== ModalState.none)
-      togglePlaying(false)
-  }, [modalState])
 
   const clickCell = (i:number, j:number) =>
     setCells(cells => {
@@ -103,26 +128,45 @@ function Main() {
 
   return (
     <SizeContext.Provider value={[gridSize, changeGridSize]}>
-      <TopBar
+
+      <Navbar
+        handleToggleSidebar={() => toggleModal(ModalState.sidebar)}
+        handleClear={clear}
+        canClear={!playing && anyActive}
+      />
+
+      <Sidebar
+        open={modalState === ModalState.sidebar}
+        onOpen={() => toggleModal(ModalState.sidebar)}
+        onClose={() => toggleModal(ModalState.sidebar)}
         handlers={{
-          handleSaving: () => toggleModal(ModalState.save),
-          handleLoading: () => toggleModal(ModalState.load),
-          handleSettings: () => toggleModal(ModalState.settings),
-          handleClear: clear
+          onClickInfo: () => null,
+          onClickSave: () => toggleModal(ModalState.save),
+          onClickLoad: () => toggleModal(ModalState.load),
+          onClickSettings: () => toggleModal(ModalState.settings),
         }}
-        actions={cellActions}
-        state={{ playing, anyActive }}
       />
 
-      <GolGrid
-        cells={cells}
-        toggleCell={clickCell}
-      />
-
-      <BottomBar
-        handleTick={tick}
-        handleTogglePlaying={() => togglePlaying()}
-        playing={playing}
+      <div className={classes.gridContainer}>
+        <GolGrid
+          cells={cells}
+          toggleCell={clickCell}
+          scale={gridScale}
+        />
+      </div>
+      
+      <FloatingActions
+        handlers={{
+          togglePlay: () => togglePlaying(),
+          step: tick,
+          undo: cellActions.back,
+          redo: cellActions.forward
+        }}
+        state={{
+          playing: playing,
+          canUndo: cellActions.canGoBack,
+          canRedo: cellActions.canGoForward
+        }}
       />
 
       <SavingModal
@@ -140,10 +184,10 @@ function Main() {
       />
       <SettingsModal
         open={modalState === ModalState.settings}
-        onClose={() => toggleModal(ModalState.settings)}
+        onClose={() => setModalState(ModalState.none)}
         handleGridSize={changeGridSize}
+        gridScale={[gridScale, setGridScale]}
       />
-
     </SizeContext.Provider>
   )
 }
