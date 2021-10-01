@@ -1,6 +1,7 @@
-import {Avatar, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText, makeStyles, Menu, MenuItem, Tab, Tabs, TextField, Tooltip, Typography } from '@material-ui/core'
+import {Avatar, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText, makeStyles, Menu, MenuItem, Tab, Tabs, TextField, Theme, Tooltip, Typography, useMediaQuery } from '@material-ui/core'
 import DoneIcon from '@material-ui/icons/Done'
 import DeleteSweepIcon from '@material-ui/icons/DeleteSweep';
+import CloseIcon from '@material-ui/icons/Close';
 import ReorderIcon from '@material-ui/icons/Reorder';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { Dispatch, FC, FormEvent, useContext, useMemo, useRef, useState } from "react"
@@ -85,6 +86,7 @@ const timeFormat = new Intl.DateTimeFormat(
 )
 
 const SavedListItem:FC<ListItemProps> = ({ pattern, handleLoad, handleDelete}) => {
+  
   const { name, created, state } = pattern
 
   const lengthStr = `${state.cells.length} cell${state.cells.length === 1 ? "" : "s"}`
@@ -92,11 +94,15 @@ const SavedListItem:FC<ListItemProps> = ({ pattern, handleLoad, handleDelete}) =
   const dimensions = `${state.size}x${state.size}`
   const subtitle = `${lengthStr} \u00B7 ${dimensions} \u00B7 ${timeStr}`
 
+  const showAvatar = useMediaQuery((theme:Theme) => theme.breakpoints.up('sm'))
   return (
-    <ListItem key={name} button onClick={handleLoad}>
-      <ListItemAvatar>
-        <Avatar src={`https://avatars.dicebear.com/api/jdenticon/${encodeURIComponent(name)}.svg?hues=100`}/>
-      </ListItemAvatar>
+    <ListItem button onClick={handleLoad}>
+      {showAvatar &&
+        <ListItemAvatar>
+          <Avatar src={`https://avatars.dicebear.com/api/jdenticon/${encodeURIComponent(name)}.svg?hues=100`}/>
+        </ListItemAvatar>
+      }
+      
       <ListItemText
         primary={name}
         secondary={subtitle}
@@ -316,6 +322,7 @@ const LoadingModal:FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPat
     onLoad(newBoard, state.size)
   }
 
+  const isMobile = useMediaQuery((theme:Theme) => theme.breakpoints.down('xs'))
   return (
     <Dialog
       open={open}
@@ -323,8 +330,15 @@ const LoadingModal:FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPat
       fullWidth
       style={{overflow: 'none'}}
       className={classes.dialog}
+      fullScreen={isMobile}
     >
       <DialogTitle className={classes.dialogTitle}>
+        {isMobile &&
+          <Grid style={{padding: '1rem'}} container direction="row" justify="space-between" alignItems="center">
+            <Typography variant="h6">Restore a pattern</Typography>
+            <IconButton onClick={onClose}><CloseIcon></CloseIcon></IconButton>
+          </Grid>
+        }
         <Tabs
           variant="fullWidth"
           value={tab}

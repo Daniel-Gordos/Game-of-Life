@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
   nav: {
     position: 'sticky',
     top: '0',
-    background: theme.palette.primary.main
+    background: 'linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)'
   },
   toolbar: {
     justifyContent: 'space-between',
@@ -33,8 +33,8 @@ const Navbar:FC<Props> = ({ handleToggleSidebar, handleClear, canClear }) => {
         <IconButton edge="start" onClick={handleToggleSidebar}>
           <DehazeIcon></DehazeIcon>
         </IconButton>
-        <Typography variant="h6" component="span" className={classes.title}>
-          Conway's Game of Life 👾
+        <Typography variant="h3" component="span" className={classes.title}>
+          👾
         </Typography>
 
 

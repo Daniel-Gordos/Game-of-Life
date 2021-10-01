@@ -71,7 +71,7 @@ const FloatingActions:FC<Props> = ({ handlers, state }) => {
         size="small"
         text="Undo"
         onClick={handlers.undo}
-        active={state.canUndo}
+        active={!state.playing && state.canUndo}
       >
         <UndoIcon/>
       </ActionButton>
@@ -80,7 +80,7 @@ const FloatingActions:FC<Props> = ({ handlers, state }) => {
         size="small"
         text="Redo"
         onClick={handlers.redo}
-        active={state.canRedo}
+        active={!state.playing && state.canRedo}
       >
         <RedoIcon/>
       </ActionButton>
@@ -90,7 +90,7 @@ const FloatingActions:FC<Props> = ({ handlers, state }) => {
         size="small"
         text="Step"
         onClick={handlers.step}
-        active={true}
+        active={!state.playing}
       >
         <SkipNextIcon/>
       </ActionButton>

@@ -1,4 +1,4 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, makeStyles, Slider, Switch, Tooltip, Typography } from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, makeStyles, Slider, Switch, Tooltip, Typography } from "@material-ui/core";
 import { FC, useContext, useEffect, useState } from "react";
 import { SizeContext } from "../main";
 import DoneIcon from '@material-ui/icons/Done';
@@ -36,8 +36,12 @@ const SettingsModal:FC<SettingsProps> = ({ open, onClose, handleGridSize, gridSc
 
     if (currGridSize != sliderGridSize)
       handleGridSize(sliderGridSize)
-    
+
     onClose()
+  }
+
+  const clearSaved = () => {
+    localStorage.clear()
   }
 
   return (
@@ -77,6 +81,12 @@ const SettingsModal:FC<SettingsProps> = ({ open, onClose, handleGridSize, gridSc
 
         <Typography gutterBottom>Wrap board edges</Typography>
         <Switch className={classes.wrapSwitch}></Switch>
+
+        <Divider></Divider>
+
+        <Button onClick={clearSaved} style={{ marginTop: '1rem'}}>
+          Clear local data
+        </Button>
 
       </DialogContent>
 
