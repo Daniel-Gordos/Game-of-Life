@@ -6,8 +6,6 @@ import { SizeContext } from "../main";
 import PublishIcon from '@material-ui/icons/Publish';
 import DoneIcon from '@material-ui/icons/Done';
 import { maxNameLen } from "../../misc/constants";
-import { b64EncodeUnicode } from "../../misc/b64";
-
 
 interface SavingProps {
   open: boolean
@@ -82,11 +80,13 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
     onClose()
   }
 
-  const exportClipboard = () =>
-    navigator.clipboard.writeText(b64EncodeUnicode(JSON.stringify({
+  const exportClipboard = () => {
+    const encoded = JSON.stringify({
       cells: encodePattern(),
       size: gridSize
-    })))
+    })
+    navigator.clipboard.writeText( Buffer.from(encoded, 'utf8').toString('base64') )
+  }
 
   return(
     <Dialog

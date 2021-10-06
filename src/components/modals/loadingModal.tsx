@@ -10,7 +10,6 @@ import { Board, Ordering, Pattern, SavedState } from '../../types';
 import { SizeContext } from '../main';
 import { maxGridSize, minGridSize } from '../../misc/constants';
 import { styled } from '@material-ui/styles';
-import { b64DecodeUnicode } from '../../misc/b64';
 
 interface LoadingProps {
   open: boolean
@@ -244,7 +243,7 @@ const ImportTab:FC<ImportTabProps> = ({ active, load }) => {
     } 
 
     setErrorText('')
-    load(JSON.parse(b64DecodeUnicode(importText)))
+    load(JSON.parse( Buffer.from(importText, 'base64').toString('utf8') ))
   }
 
   return (
@@ -279,11 +278,11 @@ const ImportTab:FC<ImportTabProps> = ({ active, load }) => {
 const validateImport = (s:string) => {
 
   try {
-    const parsed:SavedState = JSON.parse(b64DecodeUnicode(s))
+    const parsed:SavedState = JSON.parse( Buffer.from(s, 'base64').toString('utf8') )
 
     if (typeof parsed?.size !== 'number')
       return false
-    
+
     if (parsed.size < minGridSize || parsed.size > maxGridSize)
       return false
 
