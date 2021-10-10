@@ -2,7 +2,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Ico
 import { FC, useContext, useEffect, useState } from "react";
 import { SizeContext } from "../main";
 import DoneIcon from '@material-ui/icons/Done';
-import { maxGridSize, minGridSize, minGridScale, maxGridScale } from '../../misc/constants';
+import { maxGridSize, minGridSize, minGridScale, maxGridScale, minRandomize, maxRandomize } from '../../misc/constants';
 
 const useStyles = makeStyles(theme => ({
   sizeBar: {
@@ -18,21 +18,39 @@ interface SettingsProps {
   onClose: () => void
   handleGridSize: (size: number) => void
   gridScale: [number, ((scale: number) => void)]
+  randomizeChance: number
+  handleRandomizeChance: (val: number) => void
+  wrapEdges: boolean
+  handleWrapEdges: (val: boolean) => void
 }
 
-const SettingsModal:FC<SettingsProps> = ({ open, onClose, handleGridSize, gridScale }) => {
+const SettingsModal:FC<SettingsProps> = ({
+  open,
+  onClose,
+  handleGridSize,
+  gridScale,
+  randomizeChance,
+  handleRandomizeChance,
+  wrapEdges,
+  handleWrapEdges
+}) => {
+
   const classes = useStyles()
   const [currGridSize] = useContext(SizeContext)
   const [currGridScale, setGridScale] = gridScale
 
   const [sliderGridSize, setSliderGridSize] = useState(currGridSize)
   const [sliderGridScale, setSliderGridScale] = useState(currGridScale)
+  const [sliderRandomize, setSliderRandomize] = useState(randomizeChance)
+  const [currWrapEdges, setCurrWrapEdges] = useState(wrapEdges)
 
   useEffect(() => setSliderGridSize(currGridSize), [open])
 
   const confirmChanges = () => {
 
     setGridScale(sliderGridScale)
+    handleRandomizeChance(sliderRandomize)
+    handleWrapEdges(currWrapEdges)
 
     if (currGridSize != sliderGridSize)
       handleGridSize(sliderGridSize)
@@ -79,8 +97,23 @@ const SettingsModal:FC<SettingsProps> = ({ open, onClose, handleGridSize, gridSc
           valueLabelDisplay="auto"
         />
 
+        <Typography gutterBottom >Randomize cell chance</Typography>
+        <Slider
+          className={classes.sizeBar}
+          value={sliderRandomize}
+          onChange={(_, newVal) => typeof newVal === 'number' && setSliderRandomize(newVal)}
+          step={0.05}
+          min={minRandomize}
+          max={maxRandomize}
+          valueLabelDisplay="auto"
+        />
+
         <Typography gutterBottom>Wrap board edges</Typography>
-        <Switch className={classes.wrapSwitch}></Switch>
+        <Switch
+          className={classes.wrapSwitch}
+          checked={currWrapEdges}
+          onChange={e => setCurrWrapEdges(e.target.checked)}
+        />
 
         <Divider></Divider>
 

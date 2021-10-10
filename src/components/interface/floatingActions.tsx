@@ -5,6 +5,7 @@ import UndoIcon from '@material-ui/icons/Undo';
 import RedoIcon from '@material-ui/icons/Redo';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 import { FC, ReactElement } from 'react';
+import ActionButton from "./actionButton";
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -14,11 +15,6 @@ const useStyles = makeStyles(theme => ({
     bottom: theme.spacing(2),
     right: theme.spacing(2),
     pointerEvents: 'none'
-  },
-  button: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.primary.light,
-    pointerEvents: 'auto',
   }
 }))
 
@@ -34,32 +30,6 @@ interface Props {
     canUndo: boolean
     canRedo: boolean
   }
-}
-
-interface ButtonProps {
-  size: "small" | "medium" | "large"
-  text: string
-  onClick: () => void
-  active: boolean
-  children: ReactElement
-}
-
-const ActionButton:FC<ButtonProps> = ({ children, text, onClick, size, active }) => {
-  const classes = useStyles()
-  return (
-    <Tooltip arrow title={text} placement="top">
-      <Fab
-        size={size}
-        onClick={onClick}
-        disabled={!active}
-        className={classes.button}
-      >
-        <IconButton size="medium">
-          {children}
-        </IconButton>
-      </Fab>
-    </Tooltip>
-  )
 }
 
 const FloatingActions:FC<Props> = ({ handlers, state }) => {
@@ -84,7 +54,6 @@ const FloatingActions:FC<Props> = ({ handlers, state }) => {
       >
         <RedoIcon/>
       </ActionButton>
-
 
       <ActionButton
         size="small"
