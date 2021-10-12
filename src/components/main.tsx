@@ -3,7 +3,7 @@ import GolGrid from "./grid/grid";
 import { copyBoard, newBoard, useToggle, useStorage, useStateHistory } from '../misc/utils';
 import { useInterval } from 'react-use';
 import { Board, Pattern, ModalState, GridSizeContext } from '../types';
-import { defaultGridSize, historySize, tickIntervalMs, defaultGridScale, defaultRandomize, defaultWrapEdges } from '../misc/constants';
+import { defaultGridSize, historySize, tickIntervalMs, defaultGridScale, defaultRandomize, defaultWrapEdges, defaultPatterns } from '../misc/constants';
 import SavingModal from "./modals/savingModal";
 import LoadingModal from "./modals/loadingModal";
 import SettingsModal from './modals/settingsModal';
@@ -13,6 +13,7 @@ import Navbar from "./interface/navbar";
 import Sidebar from "./interface/sidebar";
 import FloatingActions from "./interface/floatingActions";
 import FloatingBoardActions from "./interface/floatingBoardActions";
+import AboutModal from "./modals/aboutModal";
 
 const useStyles = makeStyles(theme => ({
   gridContainer: {
@@ -84,7 +85,7 @@ function Main() {
 
   // Game state
   const [playing, togglePlaying] = useToggle(false)
-  const [patterns, setPatterns] = useStorage<Pattern[]>('golSaved', [], localStorage)
+  const [patterns, setPatterns] = useStorage<Pattern[]>('golSaved', defaultPatterns, localStorage)
   const [modalState, setModalState] = useState(ModalState.none)
   const [cells, setCells, cellActions] = useStateHistory(
     () => newBoard(gridSize), 
@@ -125,11 +126,13 @@ function Main() {
 
   const toggleModal = (state:ModalState) =>
     setModalState(s => (s === state) ? ModalState.none : state)
+  
+  const closeModal = () => setModalState(ModalState.none)
 
   const resetAll = () => {
     cellActions.reset(() => newBoard(gridSize))
     togglePlaying(false)
-    setModalState(ModalState.none)
+    closeModal()
   }
 
   const changeGridSize = (size:number) => {
@@ -155,7 +158,6 @@ function Main() {
     togglePlaying(false)
     setCells(newBoard(gridSize))
   }
-
 
   const tick = () =>
     setCells(cells =>
@@ -185,7 +187,7 @@ function Main() {
         onOpen={() => toggleModal(ModalState.sidebar)}
         onClose={() => toggleModal(ModalState.sidebar)}
         handlers={{
-          onClickInfo: () => null,
+          onClickInfo: () => toggleModal(ModalState.about),
           onClickSave: () => toggleModal(ModalState.save),
           onClickLoad: () => toggleModal(ModalState.load),
           onClickSettings: () => toggleModal(ModalState.settings),
@@ -221,20 +223,20 @@ function Main() {
 
       <SavingModal
         open={modalState === ModalState.save}
-        onClose={() => toggleModal(ModalState.save)}
+        onClose={closeModal}
         cellState={cells}
         setPatterns={setPatterns}
       />
       <LoadingModal
         open={modalState === ModalState.load}
-        onClose={() => toggleModal(ModalState.load)}
+        onClose={closeModal}
         onLoad={loadState}
         patterns={patterns}
         setPatterns={setPatterns}
       />
       <SettingsModal
         open={modalState === ModalState.settings}
-        onClose={() => setModalState(ModalState.none)}
+        onClose={closeModal}
         handleGridSize={changeGridSize}
         gridScale={[gridScale, setGridScale]}
         randomizeChance={randomizeChance}
@@ -242,6 +244,11 @@ function Main() {
         wrapEdges={wrapEdges}
         handleWrapEdges={(val:boolean) => setWrapEdges(val)}
       />
+      <AboutModal
+        open={modalState === ModalState.about}
+        onClose={closeModal}
+      />
+
     </SizeContext.Provider>
   )
 }

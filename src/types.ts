@@ -23,7 +23,8 @@ export enum ModalState {
   save,
   load,
   sidebar,
-  settings
+  settings,
+  about
 }
 
 export type GridSizeContext = [

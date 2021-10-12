@@ -1,9 +1,10 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Tooltip } from "@material-ui/core";
+import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Tooltip, useMediaQuery, Theme, Grid, Typography } from '@material-ui/core';
 import { styled } from "@material-ui/styles";
 import { Dispatch, FC, FormEvent, useContext, useEffect, useState } from "react";
 import { Board, CellList, Pattern } from "../../types";
 import { SizeContext } from "../main";
 import PublishIcon from '@material-ui/icons/Publish';
+import CloseIcon from '@material-ui/icons/Close';
 import DoneIcon from '@material-ui/icons/Done';
 import { maxNameLen } from "../../misc/constants";
 
@@ -88,14 +89,25 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
     navigator.clipboard.writeText( Buffer.from(encoded, 'utf8').toString('base64') )
   }
 
+  const isMobile = useMediaQuery((theme:Theme) => theme.breakpoints.down('xs'))
   return(
     <Dialog
       open={open}
       onClose={onClose}
       fullWidth
+      fullScreen={isMobile}
     >
       <form onSubmit={save}>
-        <DialogTitle>Save pattern</DialogTitle>
+        <DialogTitle>
+        {isMobile ?
+          <Grid container direction="row" justify="space-between" alignItems="center">
+            <Typography variant="h6">Save a pattern</Typography>
+            <IconButton onClick={onClose}><CloseIcon></CloseIcon></IconButton>
+          </Grid>
+        :
+          "Save a pattern"
+        }
+        </DialogTitle>
         <DialogContent dividers>
           <StyledTextField
             fullWidth

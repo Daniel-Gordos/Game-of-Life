@@ -33,7 +33,6 @@ const FloatingBoardActions:FC<Props> = ({ handleRandomize, playing }) => {
         <LoopIcon/>
       </ActionButton>
 
-
     </div>
   )
 }
