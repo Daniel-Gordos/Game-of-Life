@@ -1,7 +1,7 @@
 
 //////////////////////// Grid ////////////////////////
 
-import { Pattern } from "../types"
+import { Ordering, Pattern } from "../types"
 
 export const defaultGridSize = 10
 export const minGridSize = 4
@@ -77,3 +77,22 @@ export const historySize = 50
 export const tickIntervalMs = 250
 
 export const maxNameLen = 64
+
+export const sortOptions: ReadonlyArray<Ordering<Pattern>> = [
+  {
+    text: 'Newest',
+    sorter: (a, b) => b.created - a.created
+  },
+  {
+    text: 'Oldest',
+    sorter: (a, b) => a.created - b.created
+  },
+  {
+    text: 'Alphabetical',
+    sorter: (a, b) => a.name.localeCompare(b.name)
+  },
+  {
+    text: 'Most cells',
+    sorter: (a, b) => b.state.cells.length - a.state.cells.length
+  }
+]

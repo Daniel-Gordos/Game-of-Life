@@ -14,8 +14,8 @@ export interface Pattern {
 }
 
 export interface Ordering<T> {
-  text: string
-  sorter: (a:T, b:T) => number
+  readonly text: string
+  readonly sorter: (a:T, b:T) => number
 }
 
 export enum ModalState {
