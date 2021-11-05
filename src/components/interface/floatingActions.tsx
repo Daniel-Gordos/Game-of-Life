@@ -1,11 +1,11 @@
-import { Fab, IconButton, makeStyles, Tooltip } from "@material-ui/core"
-import PauseIcon from "@material-ui/icons/Pause";
-import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import UndoIcon from '@material-ui/icons/Undo';
-import RedoIcon from '@material-ui/icons/Redo';
-import SkipNextIcon from '@material-ui/icons/SkipNext';
-import { FC, ReactElement } from 'react';
-import ActionButton from "./actionButton";
+import { Fab, IconButton, makeStyles, Tooltip } from '@material-ui/core'
+import PauseIcon from '@material-ui/icons/Pause'
+import PlayArrowIcon from '@material-ui/icons/PlayArrow'
+import UndoIcon from '@material-ui/icons/Undo'
+import RedoIcon from '@material-ui/icons/Redo'
+import SkipNextIcon from '@material-ui/icons/SkipNext'
+import { FC, ReactElement } from 'react'
+import ActionButton from './actionButton'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -32,18 +32,17 @@ interface Props {
   }
 }
 
-const FloatingActions:FC<Props> = ({ handlers, state }) => {
+const FloatingActions: FC<Props> = ({ handlers, state }) => {
   const classes = useStyles()
   return (
     <div className={classes.container}>
-      
       <ActionButton
         size="small"
         text="Undo"
         onClick={handlers.undo}
         active={!state.playing && state.canUndo}
       >
-        <UndoIcon/>
+        <UndoIcon />
       </ActionButton>
 
       <ActionButton
@@ -52,7 +51,7 @@ const FloatingActions:FC<Props> = ({ handlers, state }) => {
         onClick={handlers.redo}
         active={!state.playing && state.canRedo}
       >
-        <RedoIcon/>
+        <RedoIcon />
       </ActionButton>
 
       <ActionButton
@@ -61,17 +60,21 @@ const FloatingActions:FC<Props> = ({ handlers, state }) => {
         onClick={handlers.step}
         active={!state.playing}
       >
-        <SkipNextIcon/>
+        <SkipNextIcon />
       </ActionButton>
 
       <ActionButton
         size="large"
-        text={state.playing ? "Pause" : "Play"}
+        text={state.playing ? 'Pause' : 'Play'}
         onClick={handlers.togglePlay}
-        active={true}>
-        {state.playing ? <PauseIcon fontSize="large"/> : <PlayArrowIcon fontSize="large"/>}
+        active={true}
+      >
+        {state.playing ? (
+          <PauseIcon fontSize="large" />
+        ) : (
+          <PlayArrowIcon fontSize="large" />
+        )}
       </ActionButton>
-
     </div>
   )
 }

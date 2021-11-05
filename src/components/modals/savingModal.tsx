@@ -1,12 +1,24 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Tooltip, useMediaQuery, Theme, Grid, Typography } from '@material-ui/core';
-import { styled } from "@material-ui/styles";
-import { Dispatch, FC, FormEvent, useContext, useEffect, useState } from "react";
-import { Board, CellList, Pattern } from "../../types";
-import { SizeContext } from "../main";
-import PublishIcon from '@material-ui/icons/Publish';
-import CloseIcon from '@material-ui/icons/Close';
-import DoneIcon from '@material-ui/icons/Done';
-import { maxNameLen } from "../../misc/constants";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  TextField,
+  Tooltip,
+  useMediaQuery,
+  Theme,
+  Grid,
+  Typography
+} from '@material-ui/core'
+import { styled } from '@material-ui/styles'
+import { Dispatch, FC, FormEvent, useContext, useEffect, useState } from 'react'
+import { Board, CellList, Pattern } from '../../types'
+import { SizeContext } from '../main'
+import PublishIcon from '@material-ui/icons/Publish'
+import CloseIcon from '@material-ui/icons/Close'
+import DoneIcon from '@material-ui/icons/Done'
+import { maxNameLen } from '../../misc/constants'
 
 interface SavingProps {
   open: boolean
@@ -17,27 +29,32 @@ interface SavingProps {
 
 const StyledTextField = styled(TextField)({
   '& label.Mui-focused': {
-    color: 'white',
+    color: 'white'
   },
   '& .MuiInput-underline:after': {
-    borderBottomColor: 'white',
+    borderBottomColor: 'white'
   },
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: 'white',
+      borderColor: 'white'
     },
     '&:hover fieldset': {
-      borderColor: 'white',
+      borderColor: 'white'
     },
     '&.Mui-focused fieldset': {
-      borderColor: 'white',
-    },
-  },
-});
+      borderColor: 'white'
+    }
+  }
+})
 
-const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) => {
+const SavingModal: FC<SavingProps> = ({
+  open,
+  onClose,
+  cellState,
+  setPatterns
+}) => {
   const [gridSize] = useContext(SizeContext)
-  
+
   const [name, setName] = useState('')
   const [errorText, setErrorText] = useState('')
 
@@ -47,17 +64,16 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
   }, [open])
 
   const encodePattern = () => {
-    const encoded:CellList = []
+    const encoded: CellList = []
     cellState.forEach((row, i) =>
       row.forEach((cell, j) => {
-        if (cell)
-          encoded.push([i, j])
+        if (cell) encoded.push([i, j])
       })
     )
     return encoded
   }
 
-  const save = (e:FormEvent) => {
+  const save = (e: FormEvent) => {
     e.preventDefault()
     if (!/[a-z0-9]/i.test(name)) {
       setErrorText('Name must contain at least one alphanumeric character!')
@@ -68,7 +84,7 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
       return
     }
 
-    const newPattern:Pattern = {
+    const newPattern: Pattern = {
       name: name,
       created: new Date().getTime(),
       state: {
@@ -76,8 +92,10 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
         size: gridSize
       }
     }
-    setPatterns(prev =>
-      [ newPattern, ...prev.filter(p => p.name != newPattern.name) ])
+    setPatterns(prev => [
+      newPattern,
+      ...prev.filter(p => p.name != newPattern.name)
+    ])
     onClose()
   }
 
@@ -86,27 +104,31 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
       cells: encodePattern(),
       size: gridSize
     })
-    navigator.clipboard.writeText( Buffer.from(encoded, 'utf8').toString('base64') )
+    navigator.clipboard.writeText(
+      Buffer.from(encoded, 'utf8').toString('base64')
+    )
   }
 
-  const isMobile = useMediaQuery((theme:Theme) => theme.breakpoints.down('xs'))
-  return(
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      fullScreen={isMobile}
-    >
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('xs'))
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth fullScreen={isMobile}>
       <form onSubmit={save}>
         <DialogTitle>
-        {isMobile ?
-          <Grid container direction="row" justify="space-between" alignItems="center">
-            <Typography variant="h6">Save a pattern</Typography>
-            <IconButton onClick={onClose}><CloseIcon></CloseIcon></IconButton>
-          </Grid>
-        :
-          "Save a pattern"
-        }
+          {isMobile ? (
+            <Grid
+              container
+              direction="row"
+              justify="space-between"
+              alignItems="center"
+            >
+              <Typography variant="h6">Save a pattern</Typography>
+              <IconButton onClick={onClose}>
+                <CloseIcon></CloseIcon>
+              </IconButton>
+            </Grid>
+          ) : (
+            'Save a pattern'
+          )}
         </DialogTitle>
         <DialogContent dividers>
           <StyledTextField
@@ -120,16 +142,18 @@ const SavingModal:FC<SavingProps> = ({ open, onClose, cellState, setPatterns }) 
             autoFocus={true}
           />
         </DialogContent>
-        <DialogActions style={{ display: 'flex' }}> 
-
-         <Tooltip title="Export to clipboard" arrow>
-            <IconButton onClick={exportClipboard} style={{ marginRight: 'auto' }}>
+        <DialogActions style={{ display: 'flex' }}>
+          <Tooltip title="Export to clipboard" arrow>
+            <IconButton
+              onClick={exportClipboard}
+              style={{ marginRight: 'auto' }}
+            >
               <PublishIcon></PublishIcon>
             </IconButton>
           </Tooltip>
 
           <Tooltip title="Confirm" arrow>
-            <IconButton type="submit" >
+            <IconButton type="submit">
               <DoneIcon></DoneIcon>
             </IconButton>
           </Tooltip>

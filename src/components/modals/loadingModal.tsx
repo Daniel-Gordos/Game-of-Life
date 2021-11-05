@@ -1,15 +1,38 @@
-import { Avatar, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText, makeStyles, Menu, MenuItem, Tab, Tabs, TextField, Theme, Tooltip, Typography, useMediaQuery } from '@material-ui/core'
+import {
+  Avatar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemSecondaryAction,
+  ListItemText,
+  makeStyles,
+  Menu,
+  MenuItem,
+  Tab,
+  Tabs,
+  TextField,
+  Theme,
+  Tooltip,
+  Typography,
+  useMediaQuery
+} from '@material-ui/core'
 import DoneIcon from '@material-ui/icons/Done'
-import DeleteSweepIcon from '@material-ui/icons/DeleteSweep';
-import CloseIcon from '@material-ui/icons/Close';
-import ReorderIcon from '@material-ui/icons/Reorder';
-import DeleteIcon from '@material-ui/icons/Delete';
-import { Dispatch, FC, FormEvent, useMemo, useState } from "react"
-import { newBoard, useToggle } from '../../misc/utils';
-import { Board, Ordering, Pattern, SavedState } from '../../types';
-import { maxGridSize, minGridSize, sortOptions } from '../../misc/constants';
-import { styled } from '@material-ui/styles';
-import { useDebounce } from 'react-use';
+import DeleteSweepIcon from '@material-ui/icons/DeleteSweep'
+import CloseIcon from '@material-ui/icons/Close'
+import ReorderIcon from '@material-ui/icons/Reorder'
+import DeleteIcon from '@material-ui/icons/Delete'
+import { Dispatch, FC, FormEvent, useMemo, useState } from 'react'
+import { newBoard, useToggle } from '../../misc/utils'
+import { Board, Ordering, Pattern, SavedState } from '../../types'
+import { maxGridSize, minGridSize, sortOptions } from '../../misc/constants'
+import { styled } from '@material-ui/styles'
+import { useDebounce } from 'react-use'
 
 interface LoadingProps {
   open: boolean
@@ -20,7 +43,7 @@ interface LoadingProps {
 }
 
 interface ListItemProps {
-  pattern: Pattern,
+  pattern: Pattern
   handleLoad: () => void
   handleDelete: () => void
 }
@@ -39,30 +62,30 @@ interface ImportTabProps {
 
 const StyledTextField = styled(TextField)({
   '& label.Mui-focused': {
-    color: 'white',
+    color: 'white'
   },
   '& .MuiInput-underline:after': {
-    borderBottomColor: 'white',
+    borderBottomColor: 'white'
   },
   '& .MuiOutlinedInput-root': {
     '& fieldset': {
-      borderColor: 'white',
+      borderColor: 'white'
     },
     '&:hover fieldset': {
-      borderColor: 'white',
+      borderColor: 'white'
     },
     '&.Mui-focused fieldset': {
-      borderColor: 'white',
-    },
-  },
+      borderColor: 'white'
+    }
+  }
 })
 
 const useStyles = makeStyles(theme => ({
   dialog: {
-    overflowY: 'hidden',
+    overflowY: 'hidden'
   },
   dialogTitle: {
-    padding: 0,
+    padding: 0
   },
   tabMenuItem: {
     height: theme.spacing(7.5)
@@ -79,16 +102,21 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const timeFormat = new Intl.DateTimeFormat(
-  'en-AU',
-  { dateStyle: "short", timeStyle: "short" }
-)
+const timeFormat = new Intl.DateTimeFormat('en-AU', {
+  dateStyle: 'short',
+  timeStyle: 'short'
+})
 
-const SavedListItem: FC<ListItemProps> = ({ pattern, handleLoad, handleDelete }) => {
-
+const SavedListItem: FC<ListItemProps> = ({
+  pattern,
+  handleLoad,
+  handleDelete
+}) => {
   const { name, created, state } = pattern
 
-  const lengthStr = `${state.cells.length} cell${state.cells.length === 1 ? "" : "s"}`
+  const lengthStr = `${state.cells.length} cell${
+    state.cells.length === 1 ? '' : 's'
+  }`
   const timeStr = timeFormat.format(created)
   const dimensions = `${state.size}x${state.size}`
   const subtitle = `${lengthStr} \u00B7 ${dimensions} \u00B7 ${timeStr}`
@@ -96,16 +124,17 @@ const SavedListItem: FC<ListItemProps> = ({ pattern, handleLoad, handleDelete })
   const showAvatar = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'))
   return (
     <ListItem button onClick={handleLoad}>
-      {showAvatar &&
+      {showAvatar && (
         <ListItemAvatar>
-          <Avatar src={`https://avatars.dicebear.com/api/jdenticon/${encodeURIComponent(name)}.svg?hues=100`} />
+          <Avatar
+            src={`https://avatars.dicebear.com/api/jdenticon/${encodeURIComponent(
+              name
+            )}.svg?hues=100`}
+          />
         </ListItemAvatar>
-      }
+      )}
 
-      <ListItemText
-        primary={name}
-        secondary={subtitle}
-      />
+      <ListItemText primary={name} secondary={subtitle} />
       <ListItemSecondaryAction onClick={handleDelete}>
         <Tooltip title="Delete" arrow>
           <IconButton edge="end">
@@ -116,7 +145,6 @@ const SavedListItem: FC<ListItemProps> = ({ pattern, handleLoad, handleDelete })
     </ListItem>
   )
 }
-
 
 const LoadTab: FC<LoadTabProps> = ({ active, patterns, setPatterns, load }) => {
   const classes = useStyles()
@@ -137,12 +165,13 @@ const LoadTab: FC<LoadTabProps> = ({ active, patterns, setPatterns, load }) => {
     setSortBy(order)
   }
 
-  useDebounce(() => setDebouncedSearch(searchText),
-    250, [searchText])
+  useDebounce(() => setDebouncedSearch(searchText), 250, [searchText])
 
   const sorted = useMemo(() => {
     return [...patterns]
-      .filter(p => p.name.toLowerCase().includes(debouncedSearch.trim().toLowerCase()))
+      .filter(p =>
+        p.name.toLowerCase().includes(debouncedSearch.trim().toLowerCase())
+      )
       .sort(sortBy.sorter)
   }, [active, patterns, sortBy, debouncedSearch])
 
@@ -159,26 +188,26 @@ const LoadTab: FC<LoadTabProps> = ({ active, patterns, setPatterns, load }) => {
           onChange={e => setSearchText(e.target.value)}
         />
         <List className={classes.savedList}>
-          {sorted.map(p =>
+          {sorted.map(p => (
             <SavedListItem
               key={p.name}
               pattern={p}
               handleLoad={() => load(p.state)}
               handleDelete={() => deletePattern(p.name)}
             />
-          )}
-          {(sorted.length == 0) &&
+          ))}
+          {sorted.length == 0 && (
             <Typography variant="body1">
               No saved patterns were found
             </Typography>
-          }
+          )}
         </List>
       </DialogContent>
 
-      <DialogActions style={{ display: "flex" }}>
+      <DialogActions style={{ display: 'flex' }}>
         <Tooltip title="Delete all" arrow>
           <IconButton
-            style={{ marginRight: "auto" }}
+            style={{ marginRight: 'auto' }}
             onClick={deleteAll}
             disabled={patterns.length === 0}
           >
@@ -187,13 +216,10 @@ const LoadTab: FC<LoadTabProps> = ({ active, patterns, setPatterns, load }) => {
         </Tooltip>
 
         <Tooltip title="Sort" arrow>
-          <IconButton
-            onClick={e => setSortAnchor(e.currentTarget)}
-          >
+          <IconButton onClick={e => setSortAnchor(e.currentTarget)}>
             <ReorderIcon></ReorderIcon>
           </IconButton>
         </Tooltip>
-
       </DialogActions>
 
       <Menu
@@ -201,24 +227,19 @@ const LoadTab: FC<LoadTabProps> = ({ active, patterns, setPatterns, load }) => {
         onClose={() => setSortAnchor(null)}
         anchorEl={sortAnchor}
       >
-        {sortOptions.map((sortOption) =>
-          <MenuItem
-            onClick={() => sort(sortOption)}
-            key={sortOption.text}
-          >
+        {sortOptions.map(sortOption => (
+          <MenuItem onClick={() => sort(sortOption)} key={sortOption.text}>
             {sortOption.text}
           </MenuItem>
-        )}
+        ))}
       </Menu>
-
     </div>
   )
 }
 
 const ImportTab: FC<ImportTabProps> = ({ active, load }) => {
-
-  const [errorText, setErrorText] = useState("")
-  const [importText, setImportText] = useState("")
+  const [errorText, setErrorText] = useState('')
+  const [importText, setImportText] = useState('')
 
   const importFromText = (e: FormEvent) => {
     e.preventDefault()
@@ -248,13 +269,11 @@ const ImportTab: FC<ImportTabProps> = ({ active, load }) => {
         </DialogContent>
 
         <DialogActions>
-
           <Tooltip title="Confirm" arrow>
-            <IconButton type="submit" >
+            <IconButton type="submit">
               <DoneIcon></DoneIcon>
             </IconButton>
           </Tooltip>
-
         </DialogActions>
       </form>
     </div>
@@ -262,27 +281,28 @@ const ImportTab: FC<ImportTabProps> = ({ active, load }) => {
 }
 
 const validateImport = (s: string) => {
-
   try {
-    const parsed: SavedState = JSON.parse(Buffer.from(s, 'base64').toString('utf8'))
+    const parsed: SavedState = JSON.parse(
+      Buffer.from(s, 'base64').toString('utf8')
+    )
 
-    if (typeof parsed?.size !== 'number')
+    if (typeof parsed?.size !== 'number') return false
+
+    if (parsed.size < minGridSize || parsed.size > maxGridSize) return false
+
+    if (!(parsed?.cells instanceof Array)) return false
+
+    if (
+      !parsed.cells.every(
+        tuple =>
+          tuple instanceof Array &&
+          tuple.length === 2 &&
+          tuple.every(
+            val => typeof val === 'number' && 0 <= val && val < parsed.size
+          )
+      )
+    )
       return false
-
-    if (parsed.size < minGridSize || parsed.size > maxGridSize)
-      return false
-
-    if (!(parsed?.cells instanceof Array))
-      return false
-
-    if (!parsed.cells.every(tuple =>
-      (tuple instanceof Array) &&
-      tuple.length === 2 &&
-      tuple.every(val =>
-        (typeof val === 'number') && 0 <= val && val < parsed.size
-      )))
-      return false
-
   } catch (err) {
     return false
   }
@@ -290,15 +310,20 @@ const validateImport = (s: string) => {
   return true
 }
 
-const LoadingModal: FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPatterns }) => {
+const LoadingModal: FC<LoadingProps> = ({
+  open,
+  onClose,
+  onLoad,
+  patterns,
+  setPatterns
+}) => {
   const classes = useStyles()
 
   const [tab, setTab] = useState(0)
 
   const decodePattern = (state: SavedState) => {
     const arr = newBoard(state.size)
-    for (const [y, x] of state.cells)
-      arr[y][x] = true
+    for (const [y, x] of state.cells) arr[y][x] = true
     return arr
   }
 
@@ -318,12 +343,20 @@ const LoadingModal: FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPa
       fullScreen={isMobile}
     >
       <DialogTitle className={classes.dialogTitle}>
-        {isMobile &&
-          <Grid style={{ padding: '1rem' }} container direction="row" justify="space-between" alignItems="center">
+        {isMobile && (
+          <Grid
+            style={{ padding: '1rem' }}
+            container
+            direction="row"
+            justify="space-between"
+            alignItems="center"
+          >
             <Typography variant="h6">Restore a pattern</Typography>
-            <IconButton onClick={onClose}><CloseIcon></CloseIcon></IconButton>
+            <IconButton onClick={onClose}>
+              <CloseIcon></CloseIcon>
+            </IconButton>
           </Grid>
-        }
+        )}
         <Tabs
           variant="fullWidth"
           value={tab}
@@ -342,11 +375,7 @@ const LoadingModal: FC<LoadingProps> = ({ open, onClose, onLoad, patterns, setPa
         load={load}
       />
 
-      <ImportTab
-        active={tab === 1}
-        load={load}
-      />
-
+      <ImportTab active={tab === 1} load={load} />
     </Dialog>
   )
 }
